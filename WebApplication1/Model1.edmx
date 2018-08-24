@@ -1,0 +1,124 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+      <Schema Namespace="studentttModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="city">
+          <Key>
+            <PropertyRef Name="cityid" />
+          </Key>
+          <Property Name="cityid" Type="int" Nullable="false" />
+          <Property Name="cityname" Type="nchar" MaxLength="10" />
+        </EntityType>
+        <EntityType Name="hobby">
+          <Key>
+            <PropertyRef Name="hobbyid" />
+          </Key>
+          <Property Name="hobbyid" Type="int" Nullable="false" />
+          <Property Name="hobbyname" Type="nchar" MaxLength="10" />
+        </EntityType>
+        <EntityType Name="studnet">
+          <Key>
+            <PropertyRef Name="stuid" />
+          </Key>
+          <Property Name="stuid" Type="int" Nullable="false" />
+          <Property Name="stuname" Type="nchar" MaxLength="10" />
+          <Property Name="hobbyid" Type="int" />
+          <Property Name="cityid" Type="int" />
+        </EntityType>
+        <EntityContainer Name="studentttModelStoreContainer">
+          <EntitySet Name="city" EntityType="Self.city" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="hobby" EntityType="Self.hobby" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="studnet" EntityType="Self.studnet" Schema="dbo" store:Type="Tables" />
+        </EntityContainer>
+      </Schema>
+    </edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="studentttModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="city">
+          <Key>
+            <PropertyRef Name="cityid" />
+          </Key>
+          <Property Name="cityid" Type="Int32" Nullable="false" />
+          <Property Name="cityname" Type="String" MaxLength="10" FixedLength="true" Unicode="true" />
+        </EntityType>
+        <EntityType Name="hobby">
+          <Key>
+            <PropertyRef Name="hobbyid" />
+          </Key>
+          <Property Name="hobbyid" Type="Int32" Nullable="false" />
+          <Property Name="hobbyname" Type="String" MaxLength="10" FixedLength="true" Unicode="true" />
+        </EntityType>
+        <EntityType Name="studnet">
+          <Key>
+            <PropertyRef Name="stuid" />
+          </Key>
+          <Property Name="stuid" Type="Int32" Nullable="false" />
+          <Property Name="stuname" Type="String" MaxLength="10" FixedLength="true" Unicode="true" />
+          <Property Name="hobbyid" Type="Int32" />
+          <Property Name="cityid" Type="Int32" />
+        </EntityType>
+        <EntityContainer Name="studentttEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="city" EntityType="Self.city" />
+          <EntitySet Name="hobby" EntityType="Self.hobby" />
+          <EntitySet Name="studnet" EntityType="Self.studnet" />
+        </EntityContainer>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="studentttModelStoreContainer" CdmEntityContainer="studentttEntities">
+          <EntitySetMapping Name="city">
+            <EntityTypeMapping TypeName="studentttModel.city">
+              <MappingFragment StoreEntitySet="city">
+                <ScalarProperty Name="cityid" ColumnName="cityid" />
+                <ScalarProperty Name="cityname" ColumnName="cityname" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="hobby">
+            <EntityTypeMapping TypeName="studentttModel.hobby">
+              <MappingFragment StoreEntitySet="hobby">
+                <ScalarProperty Name="hobbyid" ColumnName="hobbyid" />
+                <ScalarProperty Name="hobbyname" ColumnName="hobbyname" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="studnet">
+            <EntityTypeMapping TypeName="studentttModel.studnet">
+              <MappingFragment StoreEntitySet="studnet">
+                <ScalarProperty Name="stuid" ColumnName="stuid" />
+                <ScalarProperty Name="stuname" ColumnName="stuname" />
+                <ScalarProperty Name="hobbyid" ColumnName="hobbyid" />
+                <ScalarProperty Name="cityid" ColumnName="cityid" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="false" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="无" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>
