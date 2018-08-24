@@ -2,6 +2,404 @@
 @{
     ViewBag.Title = "Index";
 }
+<script type="text/javascript">
+        $(function () {
+            layui.use(["table", "form","laydate"], function () {
+                var table = layui.table,
+                    laydate = layui.laydate;
+                table.render({
+                    elem: "#socialsecurity_list",
+                    url: "/Manager/SocialSecurityApply/GetGridJson",
+                    cols: [[
+                        { checkbox: true },
+                        { field: "ApplyName", title: "申报单号", width: 400 },
+                        { field: "CustomerShort", title: "公司简称", width: 100 },
+                        { field: "EmployeeName", title: "员工姓名", width: 100 },
+                        { field: "IDNumber", title: "证件号码", width: 100 },
+                        { field: "EmployeeStatus", title: "用工状态", width: 100 },
+                        { field: "CityName", title: "参保城市", width: 100 },
+                        { field: "ApplyType", title: "申报类型", width: 100 },
+                        { field: "OperateType", title: "操作类型", width: 100 },
+                        { field: "ApplyDate", title: "申报时间", width: 120 },
+                        { field: "ApplyState", title: "订单状态", fixed: 'right', width: 100 },
+                        { title: "操作", toolbar: "#toolbar", fixed: 'right', width: 200 }
+                    ]],
+                    page: true
+                })
+                var startDate = laydate.render({
+                    elem: "#txt_begintime",
+                    type: "datetime",
+                    change: function (value, date) {
+                        $("#startTime").val(value);
+                    },
+                    done: function (value, date) {
+                        endDate.config.min = {
+                            year: date.year,
+                            month: date.month - 1, //关键
+                            date: date.date,
+                        };
+                    }
+                })
+                var endDate = laydate.render({
+                    elem: "#txt_endtime",
+                    type: "datetime",
+                    change: function (value, date) {
+                        $("#endTime").val(value);
+                    },
+                    done: function (value, date) {
+                        startDate.config.max = {
+                            year: date.year,
+                            month: date.month - 1, //关键
+                            date: date.date,
+                        };
+                    }
+                })
+            })
+            $("#btn_Search").click(function () {
+                var table = layui.table;
+                table.reload("socialsecurity_list", {
+                    where: {
+                        customerId: $("#hdCustomerId").val(),
+                        employeName: $("#txt_ename").val(),
+                        idNumber: $("#txt_idnumber").val(),
+                        cityName: $("#txt_cityname").val(),
+                        applyType: $("#slApplyType").val(),
+                        applyState: $("#slApplyState").val(),
+                        beginTime: $("#txt_begintime").val(),
+                        endTime: $("#txt_endtime").val()
+                    }
+                });
+            });
 
-<h2>Index</h2>
+            $("#searchCustomer").click(function () {
+                top.dialog({
+                    title: '选择所属客户',
+                    url: '/Manager/Customer/SearchCustomer',
+                    width: 700,
+                    height: 540,
+                    onclose: function () {
+                        var data = this.returnValue.split("|");
+                        $("#hdCustomerId").val(data[0]);
+                        $("#txt_customer").val(data[1]);
+                    },
+                    oniframeload: function () {
+                    }
+                }).showModal();
+            });
 
+            $("#soDelete").click(function () {
+                var table = layui.table;
+                var checkStatus = table.checkStatus("socialsecurity_list");
+                var vals = '';
+                for (var i in checkStatus.data) {
+                    vals += checkStatus.data[i].ApplyId + ",";
+                }
+                if (vals == '' || vals == ',') {
+                    dig.error("对不起，请选中您要操作的记录！");
+                    return;
+                }
+                layer.confirm('您确定要删除吗？', function (index) {
+                    $.ajax({
+                        type: 'post',
+                        url: '/Manager/SocialSecurityApply/DisabledApply',
+                        data: { applyId: vals },
+                        async: false,
+                        success: function (res) {
+                            if (res.Status == "y") {
+                                layer.msg(res.Msg, { icon: 5, time: 1000 });
+                                layui.use("table", function () {
+                                    var table = layui.table;
+                                    table.reload("socialsecurity_list")
+                                })
+                            } else {
+                                layer.msg(res.Msg, { icon: 5, time: 2000 });
+                            }
+                        },
+                        error: function (xhr, textStatus, errorThrown) {
+                            var err = eval("(" + xhr.responseText + ")");
+                            dig.alert(err.Msg);
+                        }
+                    });
+                });
+            });
+
+            $("#socancel").click(function () {
+                var vals = '';
+                var failcancel = '';
+                var table = layui.table;
+                var checkStatus = table.checkStatus("socialsecurity_list");
+                for (var i in checkStatus.data) {
+                    vals += checkStatus.data[i].ApplyId + ",";
+                    if (checkStatus.data[i].ApplyState != '审核退回') {
+                        failcancel += checkStatus.data[i].ApplyId + ",";
+                    }
+                }
+                if (vals == '' || vals == ',') {
+                    dig.error("对不起，请选中您要操作的记录！");
+                    return;
+                }
+                if (failcancel != '') {
+                    dig.error("审核退回的才能撤单!");
+                    return;
+                }
+                if (vals != '') {
+                    $.ajax({
+                        url: '/Manager/SocialSecurityApply/CancelApply',
+                        data: { applyId: vals },
+                        type: "post",
+                        success: function (result) {
+                            if (result.Status == "y") {
+                                layer.msg(result.Msg, { icon: 6, time: 1000 });
+                                table.reload("socialsecurity_list")
+                            } else {
+                                layer.msg(result.Msg, { icon: 5, time: 1000 });
+                            }
+                        },
+                        error: function (xhr, textStatus, errorThrown) {
+                            var err = eval("(" + xhr.responseText + ")");
+                            dig.alert(err.Msg);
+                        }
+                    });
+                }
+            });
+            // 文件上传
+            $('.sign-upload').click(function () {
+                $('#fileUp').click();
+            });
+        });
+
+        function gotoApply() {
+            var applyIds = [];
+            var table = layui.table;
+            var checkStatus = table.checkStatus('socialsecurity_list');
+            if (checkStatus.data.length < 1) {
+                dig.error("对不起，请选中您要操作的记录！");
+                return;
+            }
+            for (var i in checkStatus.data) {
+
+                if (checkStatus.data[i].ApplyState == '待申报') {
+                    applyIds.push(checkStatus.data[i].ApplyId);
+                }
+            }
+            if (applyIds.length == 0) {
+                dig.error("对不起,请确认您的选择中是否有需要申报的记录！");
+                return;
+            }
+            $.ajax({
+                url: '/Manager/SocialSecurityApply/MutiStartWorkFlow',
+                data: { applyIds: applyIds.join(',') },
+                type: "post",
+                success: function (result) {
+                    if (result.Status == undefined) {
+                        document.writeln(result);
+                    } else if (result.Status == "y") {
+                        dig.successcallback("办理成功！");
+                        location.reload();
+                    } else {
+                        layer.alert(result.Msg);
+                    }
+                },
+                error: function (xhr, textStatus, errorThrown) {
+                    var err = eval("(" + xhr.responseText + ")");
+                    dig.alert(err.Msg);
+                }
+            });
+        }
+        function socialapply(applyId, status, empname) {
+            var wfTemp = [{
+                "ClassName": "SocialSecurityApply",
+                "PrimaryKeyId": applyId,
+                "Operate": "update",
+            }];
+            var wfInput = {
+                "InstanceDefId": 7,
+                "InstanceName": "社保公积金申报流程-" + empname,
+                "EventType": "社保公积金申报",
+                "WfTemp": wfTemp,
+                "PrimaryKeyId": applyId
+            };
+            if (status === "0") {
+                $.ajax({
+                    url: "/Sys/WorkFlow/StartWorkFlow",
+                    type: "post",
+                    data: { wfInput: wfInput },
+                    success: function (res) {
+                        if (res.Status === "y") {
+                            dig.successcallback("已启动流程，静待审批！", function () {
+                                location.reload();
+                            });
+                        } else {
+                            layer.msg(res.Msg, { icon: 1, time: 2000 });
+                        }
+                    }
+                });
+            }
+            else {
+                $.ajax({
+                    url: "/Sys/WorkFlow/ReStartWorkFlow",
+                    type: "post",
+                    data: { wfInput: wfInput, instanceId: 0, comment: '重新发起流程' },
+                    success: function (res) {
+                        if (res.Status === "y") {
+                            dig.successcallback("已启动流程，静待审批！", function () {
+                                location.reload();
+                            });
+                        } else {
+                            layer.msg(res.Msg, { icon: 1, time: 1000 });
+                        }
+                    }
+                });
+            }
+        }
+
+        function gotoEdit() {
+            var employeeIds = '';
+            var employeeNames = '';
+            var applyIds = "";
+            var discitys = '';
+            var citys = '';
+            var waitcheck = '';
+            var table = layui.table;
+            var checkStatus = table.checkStatus('socialsecurity_list');
+            for (var i in checkStatus.data) {
+                citys += checkStatus.data[i].CityName + ",";
+            }
+            var citydata = citys.split(',');
+            for (var i in checkStatus.data) {
+                applyIds += checkStatus.data[i].ApplyId;
+                employeeIds += checkStatus.data[i].EmployeeId;
+                employeeNames += checkStatus.data[i].EmployeeName;
+                if (checkStatus.data[i].CityName != citydata[0]) {
+                    discitys += checkStatus.data[i].CityName;
+                }
+                if (checkStatus.data[i].ApplyState == "待审核") {
+                    waitcheck += checkStatus.data[i].ApplyState
+                }
+            }
+            if (applyIds == '' || applyIds == ',') {
+                dig.error("对不起，请选中您要操作的记录！");
+                return;
+            }
+            if (discitys != '') {
+                dig.error("对不起，您选择的数据存在不同的参保城市，无法批量编辑！");
+                return;
+            }
+            if (waitcheck != '') {
+                dig.error("对不起，待审核的申报不能编辑！");
+                return;
+            }
+            var vals = employeeIds + "|" + employeeNames + "|" + applyIds;
+            top.dialog({
+                title: '社保公积金申报',
+                url: '/Manager/SocialsecurityApply/Edit',
+                width: 850,
+                height: 550,
+                data: vals,
+                onclose: function () {
+                    //location.reload();
+                }
+            }).showModal();
+        }
+        function applyEdit(applyId, employeeId, employeeName) {
+            var vals = employeeId + ",|" + employeeName + ",|" + applyId + ",";
+            top.dialog({
+                title: '社保公积金申报',
+                url: '/Manager/SocialsecurityApply/Edit',
+                width: 850,
+                height: 550,
+                data: vals,
+                onclose: function () {
+                }
+            }).showModal();
+        }
+
+        function socialdelete(applyid) {
+            layer.confirm('您确定要删除吗？', function (index) {
+                $.ajax({
+                    type: 'post',
+                    url: '/Manager/SocialSecurityApply/DisabledApply',
+                    data: { applyId: applyid },
+                    async: false,
+                    success: function (res) {
+                        if (res.Status == "y") {
+                            layer.msg(res.Msg, { icon: 6, time: 1000 });
+                            var table = layui.table;
+                            table.reload("socialsecurity_list")
+                        } else {
+                            layer.msg(res.Msg, { icon: 5, time: 1000 });
+                        }
+                    },
+                    error: function (xhr, textStatus, errorThrown) {
+                        var err = eval("(" + xhr.responseText + ")");
+                        dig.alert(err.Msg);
+                    }
+                });
+            });
+        }
+
+        function socialcancel(applyid) {
+            layer.confirm('您确定要撤单吗？', function (index) {
+                $.ajax({
+                    type: 'post',
+                    url: '/Manager/SocialSecurityApply/CancelApply',
+                    data: { applyId: applyid },
+                    async: false,
+                    success: function (res) {
+                        if (res.Status == "y") {
+                            layer.msg(res.Msg, { icon: 6, time: 1000 });
+                            var table = layui.table;
+                            table.reload("socialsecurity_list")
+                        } else {
+                            layer.msg(res.Msg, { icon: 5, time: 1000 });
+                        }
+                    },
+                    error: function (xhr, textStatus, errorThrown) {
+                        var err = eval("(" + xhr.responseText + ")");
+                        dig.alert(err.Msg);
+                    }
+                });
+            });
+        }
+
+        function uploadExcel() {
+            var filepath = $("#fileUp").val();
+            var arr = new Array(), flag = false;
+            arr = filepath.split(".");
+            // 只允许上传excel文件
+            var fileType = new Array(["xls"], ["xlsx"]);
+            for (var i = 0; i < fileType.length; i++) {
+                if (arr[1] == fileType[i]) {
+                    flag = true;
+                }
+            }
+            if (flag) {
+                signUpFile();
+            } else {
+                layer.alert("请选择excel文件上传")
+                return false;
+            }
+        }
+
+        function signUpFile() {
+            $("#forms").ajaxSubmit({
+                url: "/Manager/SocialSecurityApply/SocialImport",
+                type: "post",
+                dataType: "json",
+                beforeSubmit: function () {
+                    var index = layer.load(2, { time: 2 * 1000 });
+                    $(".sign-upload").attr("disabled", "disabled").html('<i class="Hui-iconfont">&#xe644;</i> 正在导入中');
+                },
+                success: function (data) {
+                    layer.alert(data.Msg);
+                    $(".sign-upload").removeAttr("disabled").html('<i class="Hui-iconfont">&#xe644;</i> 导入申报');
+                    var table = layui.table;
+                    table.reload("socialsecurity_list")
+                },
+                error: function (xhr, textStatus, errorThrown) {
+                    var err = eval("(" + xhr.responseText + ")");
+                    dig.alert(err.Msg);
+                }
+            });
+        }
+</script>
